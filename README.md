@@ -5,7 +5,7 @@
 
 ```lua
 -- Declare the library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/shiawaseu/threading/main/Threading.luau", true))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/shiawaseu/threading/master/Threading.luau", true))()
 
 -- Example callback function
 local function exampleCallback(...)
