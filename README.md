@@ -26,6 +26,8 @@ end
 
 print(Library:IsActiveThread(HBthread)) -- Output: true
 
+task.wait(1)
+
 -- Shutting down threads
 HBthread:Destruct()
 
