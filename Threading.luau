@@ -14,7 +14,7 @@ type Threads = {
 	[number]: Thread
 }
 
-local HB = game:GetService("RunService").Heartbeat
+local Stepped = game:GetService("RunService").Stepped
 local Task = task
 local Type = typeof
 local Tick = tick
@@ -30,15 +30,17 @@ function Library.CreateThread(SignalOrDelay: number | RBXScriptSignal, callback:
 		Runtime = Tick(),
 		ThreadAddressOrSignal = nil,
 		Destruct = function(self)
-			local ThreadOrConnection = self.ThreadAddressOrSignal
+			-- local Type = typeof
+			local ThreadOrConnection: (RBXScriptConnection | thread)? = self.ThreadAddressOrSignal
 
-			if Type(ThreadOrConnection) == "thread" then
+			if typeof(ThreadOrConnection) == "thread" then
 				Task.cancel(ThreadOrConnection)
-			else
+			elseif typeof(ThreadOrConnection) == "RBXScriptConnection" then
 				ThreadOrConnection:Disconnect()
 			end
 			
 			ThreadOrConnection = nil
+
 		end,
 	} :: Thread, Library :: typeof(Library))
 
@@ -57,8 +59,11 @@ function Library.CreateThread(SignalOrDelay: number | RBXScriptSignal, callback:
 
 		Connection = Signal:Connect(function(...)
 			local signalArgs = {...}
-			if Signal == HB then
-				-- Rem time elapsed argument (default first arg for heartbeat) / oogway -- why
+			if Signal == Stepped then
+				-- Rem 2 args from Stepped
+				table.remove(signalArgs, 2)
+			else
+				-- 1 from others
 				table.remove(signalArgs, 1)
 			end
 
@@ -70,7 +75,8 @@ function Library.CreateThread(SignalOrDelay: number | RBXScriptSignal, callback:
 		error(debug.traceback(`expected type 'thread' or 'RBXScriptSignal' at argument #1, got '{Type(SignalOrDelay)}'`))
 	end
 
-	ActiveThreads[#ActiveThreads+1] = RunningThread
+	
+	ActiveThreads[#ActiveThreads + 1] = RunningThread
 	return RunningThread
 end
 
