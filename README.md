@@ -46,7 +46,7 @@ print(Library:IsActiveThread(HBthread)) -- Output: false
 - `<function> Destruct(<void>): <nil>`
 ## Library API Reference
 > [!IMPORTANT]
-> You'll still have to provide a value for `PerserveRuntimeParameters` even when using a delay callback, see #3
+> You'll still have to provide a value for `PerserveRuntimeParameters` even when using a delay callback, see [here](https://github.com/Shiawaseu/Threading/issues/3)
 - `Library.CreateThread(SignalOrDelay: <number> | <RBXScriptSignal>, PerserveRuntimeParameters: <boolean>, callback: <function(...any)>, ...: <any>): <Thread>`
   - Creates a thread with a delay or signal. Returns a `Thread` object.
 
