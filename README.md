@@ -13,10 +13,10 @@ local function exampleCallback(...)
 end
 
 -- Run a while loop thread for callback with a delay
--- local thread = Library.CreateThread(1, exampleCallback, "test")
+-- local thread = Library.CreateThread(1, exampleCallback, false, "test")
 
 -- Connect a callback to any Signal
-local HBthread = Library.CreateThread(game:GetService("RunService").Heartbeat, exampleCallback, "Hello", "World")
+local HBthread = Library.CreateThread(game:GetService("RunService").Heartbeat, exampleCallback, false, "Hello", "World")
 
 -- Getting threads
 local activeThreads = Library:GetThreads()
@@ -45,7 +45,9 @@ print(Library:IsActiveThread(HBthread)) -- Output: false
 
 - `<function> Destruct(<void>): <nil>`
 ## Library API Reference
-- `Library.CreateThread(SignalOrDelay: <number> | <RBXScriptSignal>, callback: <function(...any)>, ...: <any>): <Thread>`
+> [!IMPORTANT]
+> You'll still have to provide a value for `PerserveRuntimeParameters` even when using a delay callback, see #3
+- `Library.CreateThread(SignalOrDelay: <number> | <RBXScriptSignal>, PerserveRuntimeParameters: <boolean>, callback: <function(...any)>, ...: <any>): <Thread>`
   - Creates a thread with a delay or signal. Returns a `Thread` object.
 
 - `<function> Library:GetThreads(<void>): <Threads>`
