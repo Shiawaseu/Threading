@@ -7,7 +7,7 @@ type Thread = {
 	FunctionName: string,
 	ThreadAddressOrSignal: (thread | RBXScriptConnection)?,
 	Runtime: number,
-	Destruct: () -> nil,
+	Destruct: (self: Thread) -> nil,
 }
 
 type Threads = {
@@ -23,26 +23,23 @@ local Library = {}
 local ActiveThreads: Threads = {}
 Library.__index = Library
 
-function Library.CreateThread(SignalOrDelay: number | RBXScriptSignal, callback: (...any) -> (), ...: any): Thread
+function Library.CreateThread(SignalOrDelay: number | RBXScriptSignal, callback: (...any) -> (), PerserveRuntimeParameters: boolean, ...: any): Thread
 	local CallbackName: string = debug.info(callback, "n")
-	local RunningThread = setmetatable({
-		FunctionName = (Type(CallbackName) == "string" and #CallbackName >= 1 and CallbackName) or "N/A",
-		Runtime = Tick(),
-		ThreadAddressOrSignal = nil,
-		Destruct = function(self)
-			-- local Type = typeof
-			local ThreadOrConnection: (RBXScriptConnection | thread)? = self.ThreadAddressOrSignal
+	local RunningThread = setmetatable({} :: any, Library) :: Thread
+	RunningThread.FunctionName = (Type(CallbackName) == "string" and #CallbackName >= 1 and CallbackName) or "N/A"
+	RunningThread.Runtime = Tick()
+	RunningThread.ThreadAddressOrSignal = nil
+	RunningThread.Destruct = function(self)
+		local ThreadOrConnection: (RBXScriptConnection | thread)? = self.ThreadAddressOrSignal
 
-			if typeof(ThreadOrConnection) == "thread" then
-				Task.cancel(ThreadOrConnection)
-			elseif typeof(ThreadOrConnection) == "RBXScriptConnection" then
-				ThreadOrConnection:Disconnect()
-			end
-			
-			ThreadOrConnection = nil
+		if typeof(ThreadOrConnection) == "thread" then
+			Task.cancel(ThreadOrConnection)
+		elseif typeof(ThreadOrConnection) == "RBXScriptConnection" then
+			ThreadOrConnection:Disconnect()
+		end
 
-		end,
-	} :: Thread, Library :: typeof(Library))
+		ThreadOrConnection = nil
+	end
 
 	local additionalArgs = {...}
 
@@ -59,12 +56,14 @@ function Library.CreateThread(SignalOrDelay: number | RBXScriptSignal, callback:
 
 		Connection = Signal:Connect(function(...)
 			local signalArgs = {...}
-			if Signal == Stepped then
-				-- Rem 2 args from Stepped
-				table.remove(signalArgs, 2)
-			else
-				-- 1 from others
-				table.remove(signalArgs, 1)
+
+			-- Deltas
+			if not PerserveRuntimeParameters then
+				if Signal == Stepped then
+					table.remove(signalArgs, 2)
+			    else
+					table.remove(signalArgs, 1)
+				end
 			end
 
 			callback(unpack(table.move(signalArgs, 1, #signalArgs, #additionalArgs + 1, additionalArgs)))
@@ -75,7 +74,6 @@ function Library.CreateThread(SignalOrDelay: number | RBXScriptSignal, callback:
 		error(debug.traceback(`expected type 'thread' or 'RBXScriptSignal' at argument #1, got '{Type(SignalOrDelay)}'`))
 	end
 
-	
 	ActiveThreads[#ActiveThreads + 1] = RunningThread
 	return RunningThread
 end
